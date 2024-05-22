@@ -1,0 +1,29 @@
+trigger: 
+  branches:
+    include:
+      - master
+      - main
+
+#pool: 'Factory Applications'
+pool: 'FactoryApps - CFD'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.11.5'
+  displayName: 'Use Python 3.11.5'
+
+- script: |
+    python -m pip install --upgrade pip
+    python -m pip install --upgrade build setuptools twine
+    python -m build 
+  displayName: 'Install dependencies'
+
+- task: TwineAuthenticate@1
+  inputs:
+    artifactFeed: python-storage-feed     ## For an organization-scoped feed, artifactFeed: <FEED_NAME>
+    pythonUploadServiceConnection: 
+
+- script: |
+    python -m twine upload -r "python-storage-feed" --config-file $(PYPIRC_PATH) dist/*
+  displayName: 'Upload to feed'
